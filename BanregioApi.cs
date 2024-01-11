@@ -216,20 +216,20 @@ namespace Api_Bank
                 //Conexion.creaParametro(cmd, "@Archivo", SqlDbType.NVarChar, JsonConvert.SerializeObject(_Cuenta));
                 tbl = Conexion.ejecutaConsulta(cmd);
                 _Cuenta.claveArchivo = tbl.Rows[0][1].ToString();
-                //cmd = Conexion.creaComando("Sprocedure_Insert_JsonBanregio", _Cn);
-                //Conexion.creaParametro(cmd, "@Id_Archivo", SqlDbType.Int, tbl.Rows[0][0].ToString());
-                //Conexion.creaParametro(cmd, "@Json", SqlDbType.NVarChar, JsonConvert.SerializeObject(_Cuenta));
-                //Conexion.ejecutarNonquery(cmd);
-                cmd = Conexion.creaComando("Sprocedure_Insert_Pro_ArchivosBanregioCuentas", _Cn);
-                Conexion.creaParametro(cmd, "@numeroCuenta", SqlDbType.VarChar,_Cuenta.numeroCuenta);
-                Conexion.creaParametro(cmd, "@instituto", SqlDbType.VarChar, _Cuenta.instituto);
-                Conexion.creaParametro(cmd, "@claveArchivo", SqlDbType.VarChar, _Cuenta.claveArchivo);
-                Conexion.creaParametro(cmd, "@numeroDepositos", SqlDbType.Int,_Cuenta.numeroDepositos);
-                Conexion.creaParametro(cmd, "@importeTotalEfectivo", SqlDbType.Decimal,decimal.Round( _Cuenta.importeTotalEfectivo,2));
-                Conexion.creaParametro(cmd, "@importeTotalChequesPropios", SqlDbType.Decimal, _Cuenta.importeTotalChequesPropios);
-                Conexion.creaParametro(cmd, "@importeTotalChequesOtros", SqlDbType.Decimal, _Cuenta.importeTotalChequesOtros);
-                Conexion.creaParametro(cmd, "@razonSocialCliente", SqlDbType.VarChar, _Cuenta.razonSocialCliente);
-                Conexion.ejecutaScalar(cmd);
+                cmd = Conexion.creaComando("Sprocedure_Insert_JsonBanregio", _Cn);
+                Conexion.creaParametro(cmd, "@Id_Archivo", SqlDbType.Int, tbl.Rows[0][0].ToString());
+                Conexion.creaParametro(cmd, "@Json", SqlDbType.NVarChar, JsonConvert.SerializeObject(_Cuenta));
+                Conexion.ejecutarNonquery(cmd);
+                //cmd = Conexion.creaComando("Sprocedure_Insert_Pro_ArchivosBanregioCuentas", _Cn);
+                //Conexion.creaParametro(cmd, "@numeroCuenta", SqlDbType.VarChar,_Cuenta.numeroCuenta);
+                //Conexion.creaParametro(cmd, "@instituto", SqlDbType.VarChar, _Cuenta.instituto);
+                //Conexion.creaParametro(cmd, "@claveArchivo", SqlDbType.VarChar, _Cuenta.claveArchivo);
+                //Conexion.creaParametro(cmd, "@numeroDepositos", SqlDbType.Int,_Cuenta.numeroDepositos);
+                //Conexion.creaParametro(cmd, "@importeTotalEfectivo", SqlDbType.Decimal,decimal.Round( _Cuenta.importeTotalEfectivo,2));
+                //Conexion.creaParametro(cmd, "@importeTotalChequesPropios", SqlDbType.Decimal, _Cuenta.importeTotalChequesPropios);
+                //Conexion.creaParametro(cmd, "@importeTotalChequesOtros", SqlDbType.Decimal, _Cuenta.importeTotalChequesOtros);
+                //Conexion.creaParametro(cmd, "@razonSocialCliente", SqlDbType.VarChar, _Cuenta.razonSocialCliente);
+                //Conexion.ejecutaScalar(cmd);
             }
             catch (Exception ex)
             {
