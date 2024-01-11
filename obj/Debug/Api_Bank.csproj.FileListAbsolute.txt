@@ -7,3 +7,11 @@ C:\Users\jesus.ortega\source\repos\Api_Bank\obj\Debug\Api_Bank.csproj.AssemblyRe
 C:\Users\jesus.ortega\source\repos\Api_Bank\bin\Debug\Newtonsoft.Json.dll
 C:\Users\jesus.ortega\source\repos\Api_Bank\bin\Debug\Newtonsoft.Json.xml
 C:\Users\jesus.ortega\source\repos\Api_Bank\obj\Debug\Api_Bank.csproj.CopyComplete
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\bin\Debug\Api_Bank.dll
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\bin\Debug\Api_Bank.pdb
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\bin\Debug\Newtonsoft.Json.dll
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\bin\Debug\Newtonsoft.Json.xml
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.CoreCompileInputs.cache
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.CopyComplete
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.dll
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.pdb
