@@ -300,20 +300,12 @@ namespace Api_Bank
                     }
                     _cDepositos++;
                 }
-                //agregar id cuenta a archivobanregio
-                //if (_idcuenta == null || _idcuenta.ToString() == "" || Convert.ToInt32(_idcuenta) == 23)
-                //{
-                //    var ddd = "Ok";
-                //}
-                //else
-                //{
                     cmd = Conexion.creaComando("Sprocedure_Update_ProArchivosBanregio", _Cn);
                     Conexion.creaParametro(cmd, "@Id_Archivo", SqlDbType.Int, tbl.Rows[0][0].ToString());
                     Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, _idcuenta);
                     Conexion.ejecutarNonquery(cmd);
                 
-                message.Add(String.Format("Cuenta:{0},TTDepositos:{1},InsDepositos:{2},TTCheques:{3},InsCheques:{4}",_numerocuentamsg,_ttDepositos,_cDepositos,_ttCheques,_cCheques));
-                //message.Add(_numerocuentamsg + idcuentamsg + _remisionmsg + "|desgloses:[total:"+_ttDesgloses+",Insertados:" + _cDesgloses + "]|cheques:[Total:"+_ttCheques+",Insertados:" + _cCheques+"]");
+                message.Add(String.Format("Cuenta:{0},TTDepositos:{1},InsDepositos:{2},TTCheques:{3},InsCheques:{4}",_numerocuentamsg,_ttDepositos,_cDepositos,_ttCheques,_cCheques));              
 
             }
             catch (Exception ex)
