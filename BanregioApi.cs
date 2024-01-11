@@ -177,7 +177,7 @@ namespace Api_Bank
             }
             else
             {
-                return null;
+                return "";
             }
         }
         public List<Denominacion> ArmarDesglose(long Id_Ficha)
@@ -250,7 +250,7 @@ namespace Api_Bank
                     Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, _idcuenta);
                     Conexion.creaParametro(cmd, "@consecutivo", SqlDbType.Int, deposito.consecutivo);
                     Conexion.creaParametro(cmd, "@divisa", SqlDbType.VarChar, deposito.divisa);
-                    Conexion.creaParametro(cmd, "@remesa", SqlDbType.Int, deposito.remesa);
+                    Conexion.creaParametro(cmd, "@remesa", SqlDbType.VarChar, deposito.remesa);
                     _remisionmsg =  deposito.remesa.ToString();
                     Conexion.creaParametro(cmd, "@referencia", SqlDbType.VarChar, deposito.referencia);
                     Conexion.creaParametro(cmd, "@importeTotal", SqlDbType.Decimal, deposito.importeTotal);
