@@ -246,5 +246,43 @@ namespace Api_Bank
            
         }
 
+        #region GetCuentas
+
+        public Cuenta getCuenta(int id)
+        {
+            Cuenta _cuenta = new Cuenta();
+            DataTable tbl;
+            SqlCommand cmd = null;
+            try
+            {
+                //SqlConnection cnn = Conexion.creaConexion("");
+                cmd = Conexion.creaComando("Sprocedure_Insert_ArchivosBanregio", _Cn);
+                Conexion.creaParametro(cmd, "@Id_Sesion", SqlDbType.Int, _IdSesion);
+
+                tbl=Conexion.ejecutaConsulta(cmd);
+                _cuenta.numeroCuenta = tbl.Rows[0][0].ToString();
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+
+
+
+
+            return _cuenta;
+
+        }
+
+
+
+
+
+        #endregion
+
+
+
+
     }
 }
