@@ -15,3 +15,4 @@ C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.CoreC
 C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.CopyComplete
 C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.dll
 C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.pdb
+C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.AssemblyReference.cache
