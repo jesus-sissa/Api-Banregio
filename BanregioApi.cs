@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using Api_Bank.ResponseBanregio;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -461,8 +463,8 @@ namespace Api_Bank
                 foreach (var icuenta in lcuentas)
                 {
                     List<Deposito> lc_deposito = new List<Deposito>();
-                    List<Denominacion> lc_desglose = new List<Denominacion>();
-                    List<DetalleCheque> lc_ListaCheques = new List<DetalleCheque>();
+                    
+                   
                     SqlCommand cmd = null;
 
                     cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDepositos", _Cn);
@@ -484,7 +486,7 @@ namespace Api_Bank
                         cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleEfectivoDesglose", _Cn);
                         Conexion.creaParametro(cmd, "@id_detalleefectivo", SqlDbType.Int, Convert.ToInt32(tdetalleEfectivo.Rows[0][0]));
                         var tdetalleEfectivodesglose = Conexion.ejecutaConsulta(cmd);
-
+                        List<Denominacion> lc_desglose = new List<Denominacion>();
                         for (int ids = 0; ids < tdetalleEfectivodesglose.Rows.Count; ids++)
                         {
                             lc_desglose.Add(new Denominacion
@@ -501,7 +503,7 @@ namespace Api_Bank
                         cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleCheques", _Cn);
                         Conexion.creaParametro(cmd, "@id_deposito", SqlDbType.Int, Convert.ToInt32(tdepositos.Rows[i][0]));
                         var tdetallecheques = Conexion.ejecutaConsulta(cmd);
-
+                        List<DetalleCheque> lc_ListaCheques = new List<DetalleCheque>();
                         for (int ic = 0; ic < tdetallecheques.Rows.Count; ic++)
                         {
                             lc_ListaCheques.Add(new DetalleCheque
@@ -563,6 +565,118 @@ namespace Api_Bank
             //var json = new { fecha = DateTime.Now.ToString(), cuentas =  };
 
             return JsonConvert.SerializeObject(lc_cuentas);
+        }
+
+        public string GetRespuestaBanregio() 
+        {
+
+            Response _response = null ;
+            string json = null;
+          
+            string path = @"C:\testApi\respuestaJson.json";
+            using (StreamReader jsonStream = File.OpenText(path))
+            {
+                 json = jsonStream.ReadToEnd();
+                //_response = JsonConvert.DeserializeObject<Response>(json);
+            }
+
+            return json;
+
+        }
+
+        public List<Response> GetRespuestaBanregioList()
+        {
+
+            List<Response> _response;
+            string json = null;
+
+            string path = @"C:\testApi\respuestaJson.json";
+            using (StreamReader jsonStream = File.OpenText(path))
+            {
+                json = jsonStream.ReadToEnd();
+                _response = JsonConvert.DeserializeObject<List<Response>>(json);
+            }
+
+            return _response;
+
+        }
+
+        public List<Archivos> GetRespuestaBanregioList2()
+        {
+
+            List<Archivos> _response;
+            string json = null;
+
+            string path = @"C:\testApi\respuestaJson2.json";
+            using (StreamReader jsonStream = File.OpenText(path))
+            {
+                json = jsonStream.ReadToEnd();
+                _response = JsonConvert.DeserializeObject<List<Archivos>>(json);
+            }
+
+            return _response;
+
+        }
+
+        public void RegistrarRespuestaBanregio(SqlConnection cn, List<Response> _response) 
+        {
+            try
+            {
+                _Cn = cn;
+                foreach (var resp in _response)
+                {
+                    foreach (var archivo in resp.archivos)
+                    {
+                        //registrar archivo
+                        SqlCommand cmd = null;
+                        cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsn", _Cn);
+                        Conexion.creaParametro(cmd, "@claveArchivo", SqlDbType.VarChar, archivo.claveArchivo);
+                        Conexion.creaParametro(cmd, "@cuenta", SqlDbType.VarChar, archivo.cuenta);
+                        Conexion.creaParametro(cmd, "@fecha", SqlDbType.DateTime, DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss.000Z"));
+                        var idarchivo = Conexion.ejecutaScalar(cmd);
+
+                        foreach (var exito in archivo.exitos)
+                        {
+                            //registrar exitosos
+                            cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsnExito", _Cn);
+                            Conexion.creaParametro(cmd, "@idvsn", SqlDbType.Int, idarchivo);
+                            Conexion.creaParametro(cmd, "@consecutivo", SqlDbType.VarChar, exito.consecutivo);
+                            Conexion.creaParametro(cmd, "@descripcion", SqlDbType.VarChar,"" );
+                            Conexion.ejecutarNonquery(cmd);
+
+                        }
+
+                        foreach (var rechazo in archivo.rechazos)
+                        {
+                            //registrar rechazados
+                            cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsnRechazo", _Cn);
+                            Conexion.creaParametro(cmd, "@idvsn", SqlDbType.VarChar, idarchivo);
+                            Conexion.creaParametro(cmd, "@consecutivo", SqlDbType.VarChar, rechazo.consecutivo);
+                            Conexion.creaParametro(cmd, "@bandamagnetica", SqlDbType.VarChar,"");
+                            var idrechazo = Conexion.ejecutaScalar(cmd);
+
+                            foreach (var error in rechazo.errores)
+                            {
+                                //registrar errores
+                                cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsnRechazoErrores", _Cn);
+                                Conexion.creaParametro(cmd, "@idvsnrechazo", SqlDbType.Int, idrechazo);
+                                Conexion.creaParametro(cmd, "@codigo", SqlDbType.VarChar, error.codigo);
+                                Conexion.creaParametro(cmd, "@descripcion", SqlDbType.VarChar, error.descripcion);
+                                Conexion.ejecutarNonquery(cmd);
+                            }
+                        }
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+
+                ErrorTrack.Add(ex.ToString());
+            }
+           
+
         }
 
 

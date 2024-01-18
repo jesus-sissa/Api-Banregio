@@ -16,3 +16,12 @@ C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.CopyC
 C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.dll
 C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.pdb
 C:\Users\jesus.medrano\Source\Repos\Api-Banregio\obj\Debug\Api_Bank.csproj.AssemblyReference.cache
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\bin\Debug\Api_Bank.dll
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\bin\Debug\Api_Bank.pdb
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\bin\Debug\Newtonsoft.Json.dll
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\bin\Debug\Newtonsoft.Json.xml
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\obj\Debug\Api_Bank.csproj.CoreCompileInputs.cache
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\obj\Debug\Api_Bank.csproj.CopyComplete
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\obj\Debug\Api_Bank.dll
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\obj\Debug\Api_Bank.pdb
+C:\Users\jesus.ortega\Desktop\repo\Api-Banregio\obj\Debug\Api_Bank.csproj.AssemblyReference.cache
