@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using Api_Bank.ResponseBanregio;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +15,7 @@ namespace Api_Bank
     {
         public List<string> message = new List<string>();
         public List<string> ErrorTrack = new List<string>();
-        public List<Tuple<string,string,Deposito>> TrackDepositos = new List<Tuple<string,string, Deposito>>();
+        public List<Tuple<string, string, Deposito>> TrackDepositos = new List<Tuple<string, string, Deposito>>();
         public List<Denominacion> Trackdesglose = new List<Denominacion>();
         //public string message = null;
         DataTable _Cuentas, _Depositos, _EfectivoDesglose, _Cheques;
@@ -206,8 +208,8 @@ namespace Api_Bank
         {
             DataTable tbl;
             string _numerocuentamsg = null, idcuentamsg = null, _remisionmsg = null, iddepositomsg = null, iddetallemsg = null;
-            int _ttDepositos, _cDepositos=0,_ttDesgloses = 0, _cDesgloses = 0, _ttCheques=0,_cCheques = 0;
-            
+            int _ttDepositos, _cDepositos = 0, _ttDesgloses = 0, _cDesgloses = 0, _ttCheques = 0, _cCheques = 0;
+
             _numerocuentamsg = _Cuenta.numeroCuenta.ToString();
             SqlCommand cmd = null;
             try
@@ -244,21 +246,21 @@ namespace Api_Bank
                 _ttDepositos = _Cuenta.depositos.Count - 1;
                 foreach (var deposito in _Cuenta.depositos)
                 {
-                   
+
                     //registro del deposito
                     cmd = Conexion.creaComando("Sprocedure_Insert_Pro_ArchivosBanregioDepositos", _Cn);
                     Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, _idcuenta);
                     Conexion.creaParametro(cmd, "@consecutivo", SqlDbType.Int, deposito.consecutivo);
                     Conexion.creaParametro(cmd, "@divisa", SqlDbType.VarChar, deposito.divisa);
                     Conexion.creaParametro(cmd, "@remesa", SqlDbType.VarChar, deposito.remesa);
-                    _remisionmsg =  deposito.remesa.ToString();
+                    _remisionmsg = deposito.remesa.ToString();
                     Conexion.creaParametro(cmd, "@referencia", SqlDbType.VarChar, deposito.referencia);
                     Conexion.creaParametro(cmd, "@importeTotal", SqlDbType.Decimal, deposito.importeTotal);
                     Conexion.creaParametro(cmd, "@importeFicha", SqlDbType.Decimal, deposito.importeFicha);
                     Conexion.creaParametro(cmd, "@diferencia", SqlDbType.Decimal, deposito.diferencia);
                     Conexion.creaParametro(cmd, "@tipoDiferencia", SqlDbType.VarChar, deposito.tipoDiferencia);
                     var _id_Deposito = Conexion.ejecutaScalar(cmd);
-                    TrackDepositos.Add(new Tuple<string,string,Deposito>(_numerocuentamsg+":"+idcuentamsg,_id_Deposito.ToString(),deposito));
+                    TrackDepositos.Add(new Tuple<string, string, Deposito>(_numerocuentamsg + ":" + idcuentamsg, _id_Deposito.ToString(), deposito));
                     iddepositomsg = _id_Deposito.ToString();
                     //registro de detalle de efectivo del deposito
                     cmd = Conexion.creaComando("Sprocedure_Insert_Pro_ArchivosBanregioDetalleEfectivo", _Cn);
@@ -266,7 +268,7 @@ namespace Api_Bank
                     Conexion.creaParametro(cmd, "@fechaRecepcion", SqlDbType.DateTime, deposito.detalleEfectivo.fechaRecepcion);
                     Conexion.creaParametro(cmd, "@importe", SqlDbType.Decimal, deposito.detalleEfectivo.importe);
                     var _id_DetalleEfectivo = Conexion.ejecutaScalar(cmd);
-                    iddetallemsg =_id_DetalleEfectivo.ToString();
+                    iddetallemsg = _id_DetalleEfectivo.ToString();
                     //recorrer lista de detalle de efectivo relacionado al deposito
                     _ttDesgloses = deposito.detalleEfectivo.desglose.Count();
                     foreach (var desglose in deposito.detalleEfectivo.desglose)
@@ -307,7 +309,7 @@ namespace Api_Bank
                 Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, _idcuenta);
                 Conexion.ejecutarNonquery(cmd);
 
-                message.Add(String.Format("Cuenta:{0},TTDepositos:{1},InsDepositos:{2},TTCheques:{3},InsCheques:{4}",_numerocuentamsg,_ttDepositos,_cDepositos,_ttCheques,_cCheques));
+                message.Add(String.Format("Cuenta:{0},TTDepositos:{1},InsDepositos:{2},TTCheques:{3},InsCheques:{4}", _numerocuentamsg, _ttDepositos, _cDepositos, _ttCheques, _cCheques));
                 //message.Add(_numerocuentamsg + idcuentamsg + _remisionmsg + "|desgloses:[total:"+_ttDesgloses+",Insertados:" + _cDesgloses + "]|cheques:[Total:"+_ttCheques+",Insertados:" + _cCheques+"]");
 
             }
@@ -323,8 +325,360 @@ namespace Api_Bank
         {
             return JsonConvert.DeserializeObject<Cuenta>(Json);
         }
-      
-       
+
+        public CuentaI Detalle_EfectivoInt(string Json)
+        {
+            return JsonConvert.DeserializeObject<CuentaI>(Json);
+        }
+
+        public string JsonBanregioCuentas(SqlConnection cn, List<int> lcuentas)
+        {
+            SqlConnection _Cn;
+            List<Cuenta> lc_cuentas = new List<Cuenta>();
+           
+
+            try
+            {
+                _Cn = cn;
+             
+                foreach (var icuenta in lcuentas)
+                {
+                    List<Deposito> lc_deposito = new List<Deposito>();
+                    List<Denominacion> lc_desglose = new List<Denominacion>();
+                    List<DetalleCheque> lc_ListaCheques = new List<DetalleCheque>();
+                    SqlCommand cmd = null;
+
+                    cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDepositos", _Cn);
+                    Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, icuenta);
+                    var tdepositos = Conexion.ejecutaConsulta(cmd);
+
+                    for (int i = 0; i < tdepositos.Rows.Count; i++)
+                    {
+
+                        cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleEfectivo", _Cn);
+                        Conexion.creaParametro(cmd, "@id_deposito", SqlDbType.Int, Convert.ToInt32(tdepositos.Rows[i][0]));
+                        var tdetalleEfectivo = Conexion.ejecutaConsulta(cmd);
+                        //agregar detalle
+                        DetalleEfectivo _idetalle = new DetalleEfectivo();
+                        _idetalle.fechaRecepcion = DateTime.Parse(tdetalleEfectivo.Rows[0][2].ToString()).ToString("yyyy-MM-ddThh:mm:ss.000Z");
+                        _idetalle.importe = Convert.ToDecimal(tdetalleEfectivo.Rows[0][3]);
+
+                        //desglose
+                        cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleEfectivoDesglose", _Cn);
+                        Conexion.creaParametro(cmd, "@id_detalleefectivo", SqlDbType.Int, Convert.ToInt32(tdetalleEfectivo.Rows[0][0]));
+                        var tdetalleEfectivodesglose = Conexion.ejecutaConsulta(cmd);
+
+                        for (int ids = 0; ids < tdetalleEfectivodesglose.Rows.Count; ids++)
+                        {
+                            lc_desglose.Add(new Denominacion
+                            {
+                                tipo = tdetalleEfectivodesglose.Rows[ids][1].ToString(),
+                                denominacion = Convert.ToDecimal(tdetalleEfectivodesglose.Rows[ids][2]),
+                                cantidad = Convert.ToInt32(tdetalleEfectivodesglose.Rows[ids][3]),
+                                importe = Convert.ToDecimal(tdetalleEfectivodesglose.Rows[ids][4]),
+                            });
+                        }
+                        //agregar desglose
+                        _idetalle.desglose = lc_desglose;
+                        //sacar cheques
+                        cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleCheques", _Cn);
+                        Conexion.creaParametro(cmd, "@id_deposito", SqlDbType.Int, Convert.ToInt32(tdepositos.Rows[i][0]));
+                        var tdetallecheques = Conexion.ejecutaConsulta(cmd);
+
+                        for (int ic = 0; ic < tdetallecheques.Rows.Count; ic++)
+                        {
+                            lc_ListaCheques.Add(new DetalleCheque
+                            {
+                                tipoCheque = tdetallecheques.Rows[ic][1].ToString(),
+                                referenciaControl = Convert.ToInt32(tdetallecheques.Rows[ic][2]),
+                                bandaMagnetica = tdetallecheques.Rows[ic][3].ToString(),
+                                numeroSeguridadInvisible = tdetallecheques.Rows[ic][4].ToString(),
+                                fechaRecepcion = tdetallecheques.Rows[ic][5].ToString(),
+                                importe = Convert.ToDecimal(tdetallecheques.Rows[ic][6].ToString())
+                            });
+                        }
+
+                        //agregar deposito
+                        lc_deposito.Add(new Deposito
+                        {
+                            consecutivo = Convert.ToInt32(tdepositos.Rows[i][2]),
+                            divisa = tdepositos.Rows[i][3].ToString(),
+                            remesa = Convert.ToInt64(tdepositos.Rows[i][4]),
+                            referencia = tdepositos.Rows[i][5].ToString(),
+                            importeTotal = Convert.ToDecimal(tdepositos.Rows[i][6]),
+                            importeFicha = Convert.ToDecimal(tdepositos.Rows[i][7]),
+                            diferencia = Convert.ToDecimal(tdepositos.Rows[i][8]),
+                            tipoDiferencia = tdepositos.Rows[i][9].ToString(),
+                            detalleEfectivo = _idetalle,
+                            detalleCheque = lc_ListaCheques
+                        });
+                    }
+
+                    //sacar cuenta
+                    cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioCuenta", _Cn);
+                    Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, icuenta);
+                    var tcuenta = Conexion.ejecutaConsulta(cmd);
+                    Cuenta cuenta = new Cuenta();
+                    cuenta.numeroCuenta = tcuenta.Rows[0][1].ToString();
+                    cuenta.instituto = tcuenta.Rows[0][2].ToString();
+                    cuenta.claveArchivo = tcuenta.Rows[0][3].ToString();
+                    cuenta.numeroDepositos = Convert.ToInt32(tcuenta.Rows[0][4]);
+                    cuenta.importeTotalEfectivo = Convert.ToDecimal(tcuenta.Rows[0][5]);
+                    cuenta.importeTotalChequesPropios = Convert.ToDecimal(tcuenta.Rows[0][6]);
+                    cuenta.importeTotalChequesOtros = Convert.ToDecimal(tcuenta.Rows[0][7]);
+                    cuenta.razonSocialCliente = tcuenta.Rows[0][8].ToString();
+                    cuenta.depositos = lc_deposito;
+
+                    lc_cuentas.Add(cuenta);
+                    lc_deposito.Clear();
+                    lc_desglose.Clear();
+                    lc_ListaCheques.Clear();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ErrorTrack.Add(ex.ToString());
+                ErrorTrack.Add(ex.StackTrace.ToString());
+
+            }
+
+
+            var json = new { fecha = DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss.000Z"), cuentas = lc_cuentas };
+
+            return JsonConvert.SerializeObject(json);
+        }
+
+
+        public string JsonCuentas(SqlConnection cn, List<int> lcuentas)
+        {
+            SqlConnection _Cn;
+            List<CuentaI> lc_cuentas = new List<CuentaI>();
+
+
+            try
+            {
+                _Cn = cn;
+             
+                foreach (var icuenta in lcuentas)
+                {
+                    List<Deposito> lc_deposito = new List<Deposito>();
+                    
+                   
+                    SqlCommand cmd = null;
+
+                    cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDepositos", _Cn);
+                    Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, icuenta);
+                    var tdepositos = Conexion.ejecutaConsulta(cmd);
+
+                    for (int i = 0; i < tdepositos.Rows.Count; i++)
+                    {
+
+                        cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleEfectivo", _Cn);
+                        Conexion.creaParametro(cmd, "@id_deposito", SqlDbType.Int, Convert.ToInt32(tdepositos.Rows[i][0]));
+                        var tdetalleEfectivo = Conexion.ejecutaConsulta(cmd);
+                        //agregar detalle
+                        DetalleEfectivo _idetalle = new DetalleEfectivo();
+                        _idetalle.fechaRecepcion = DateTime.Parse(tdetalleEfectivo.Rows[0][2].ToString()).ToString("yyyy-MM-ddThh:mm:ss.000Z");
+                        _idetalle.importe = Convert.ToDecimal(tdetalleEfectivo.Rows[0][3]);
+
+                        //desglose
+                        cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleEfectivoDesglose", _Cn);
+                        Conexion.creaParametro(cmd, "@id_detalleefectivo", SqlDbType.Int, Convert.ToInt32(tdetalleEfectivo.Rows[0][0]));
+                        var tdetalleEfectivodesglose = Conexion.ejecutaConsulta(cmd);
+                        List<Denominacion> lc_desglose = new List<Denominacion>();
+                        for (int ids = 0; ids < tdetalleEfectivodesglose.Rows.Count; ids++)
+                        {
+                            lc_desglose.Add(new Denominacion
+                            {
+                                tipo = tdetalleEfectivodesglose.Rows[ids][1].ToString(),
+                                denominacion = Convert.ToDecimal(tdetalleEfectivodesglose.Rows[ids][2]),
+                                cantidad = Convert.ToInt32(tdetalleEfectivodesglose.Rows[ids][3]),
+                                importe = Convert.ToDecimal(tdetalleEfectivodesglose.Rows[ids][4]),
+                            });
+                        }
+                        //agregar desglose
+                        _idetalle.desglose = lc_desglose;
+                        //sacar cheques
+                        cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioDetalleCheques", _Cn);
+                        Conexion.creaParametro(cmd, "@id_deposito", SqlDbType.Int, Convert.ToInt32(tdepositos.Rows[i][0]));
+                        var tdetallecheques = Conexion.ejecutaConsulta(cmd);
+                        List<DetalleCheque> lc_ListaCheques = new List<DetalleCheque>();
+                        for (int ic = 0; ic < tdetallecheques.Rows.Count; ic++)
+                        {
+                            lc_ListaCheques.Add(new DetalleCheque
+                            {
+                                tipoCheque = tdetallecheques.Rows[ic][1].ToString(),
+                                referenciaControl = Convert.ToInt32(tdetallecheques.Rows[ic][2]),
+                                bandaMagnetica = tdetallecheques.Rows[ic][3].ToString(),
+                                numeroSeguridadInvisible = tdetallecheques.Rows[ic][4].ToString(),
+                                fechaRecepcion = tdetallecheques.Rows[ic][5].ToString(),
+                                importe = Convert.ToDecimal(tdetallecheques.Rows[ic][6].ToString())
+                            });
+                        }
+
+                        //agregar deposito
+                        lc_deposito.Add(new Deposito
+                        {
+                            consecutivo = Convert.ToInt32(tdepositos.Rows[i][2]),
+                            divisa = tdepositos.Rows[i][3].ToString(),
+                            remesa = Convert.ToInt64(tdepositos.Rows[i][4]),
+                            referencia = tdepositos.Rows[i][5].ToString(),
+                            importeTotal = Convert.ToDecimal(tdepositos.Rows[i][6]),
+                            importeFicha = Convert.ToDecimal(tdepositos.Rows[i][7]),
+                            diferencia = Convert.ToDecimal(tdepositos.Rows[i][8]),
+                            tipoDiferencia = tdepositos.Rows[i][9].ToString(),
+                            detalleEfectivo = _idetalle,
+                            detalleCheque = lc_ListaCheques
+                        });
+                    }
+
+                    //sacar cuenta
+                    cmd = Conexion.creaComando("Sprocedure_Get_Pro_ArchivosBanregioCuenta", _Cn);
+                    Conexion.creaParametro(cmd, "@id_cuenta", SqlDbType.Int, icuenta);
+                    var tcuenta = Conexion.ejecutaConsulta(cmd);
+                    CuentaI cuenta = new CuentaI();
+                    cuenta.id = tcuenta.Rows[0][0].ToString();
+                    cuenta.numeroCuenta = tcuenta.Rows[0][1].ToString();
+                    cuenta.instituto = tcuenta.Rows[0][2].ToString();
+                    cuenta.claveArchivo = tcuenta.Rows[0][3].ToString();
+                    cuenta.numeroDepositos = Convert.ToInt32(tcuenta.Rows[0][4]);
+                    cuenta.importeTotalEfectivo = Convert.ToDecimal(tcuenta.Rows[0][5]);
+                    cuenta.importeTotalChequesPropios = Convert.ToDecimal(tcuenta.Rows[0][6]);
+                    cuenta.importeTotalChequesOtros = Convert.ToDecimal(tcuenta.Rows[0][7]);
+                    cuenta.razonSocialCliente = tcuenta.Rows[0][8].ToString();
+                    cuenta.depositos = lc_deposito;
+
+                    lc_cuentas.Add(cuenta);
+                 
+                }
+
+            }
+            catch (Exception ex)
+            {
+                ErrorTrack.Add(ex.ToString());
+                ErrorTrack.Add(ex.StackTrace.ToString());
+
+            }
+
+
+            //var json = new { fecha = DateTime.Now.ToString(), cuentas =  };
+
+            return JsonConvert.SerializeObject(lc_cuentas);
+        }
+
+        public string GetRespuestaBanregio() 
+        {
+
+            Response _response = null ;
+            string json = null;
+          
+            string path = @"C:\testApi\respuestaJson.json";
+            using (StreamReader jsonStream = File.OpenText(path))
+            {
+                 json = jsonStream.ReadToEnd();
+                //_response = JsonConvert.DeserializeObject<Response>(json);
+            }
+
+            return json;
+
+        }
+
+        public List<Response> GetRespuestaBanregioList()
+        {
+
+            List<Response> _response;
+            string json = null;
+
+            string path = @"C:\testApi\respuestaJson.json";
+            using (StreamReader jsonStream = File.OpenText(path))
+            {
+                json = jsonStream.ReadToEnd();
+                _response = JsonConvert.DeserializeObject<List<Response>>(json);
+            }
+
+            return _response;
+
+        }
+
+        public List<Archivos> GetRespuestaBanregioList2()
+        {
+
+            List<Archivos> _response;
+            string json = null;
+
+            string path = @"C:\testApi\respuestaJson2.json";
+            using (StreamReader jsonStream = File.OpenText(path))
+            {
+                json = jsonStream.ReadToEnd();
+                _response = JsonConvert.DeserializeObject<List<Archivos>>(json);
+            }
+
+            return _response;
+
+        }
+
+        public void RegistrarRespuestaBanregio(SqlConnection cn, List<Response> _response) 
+        {
+            try
+            {
+                _Cn = cn;
+                foreach (var resp in _response)
+                {
+                    foreach (var archivo in resp.archivos)
+                    {
+                        //registrar archivo
+                        SqlCommand cmd = null;
+                        cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsn", _Cn);
+                        Conexion.creaParametro(cmd, "@claveArchivo", SqlDbType.VarChar, archivo.claveArchivo);
+                        Conexion.creaParametro(cmd, "@cuenta", SqlDbType.VarChar, archivo.cuenta);
+                        Conexion.creaParametro(cmd, "@fecha", SqlDbType.DateTime, DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss.000Z"));
+                        var idarchivo = Conexion.ejecutaScalar(cmd);
+
+                        foreach (var exito in archivo.exitos)
+                        {
+                            //registrar exitosos
+                            cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsnExito", _Cn);
+                            Conexion.creaParametro(cmd, "@idvsn", SqlDbType.Int, idarchivo);
+                            Conexion.creaParametro(cmd, "@consecutivo", SqlDbType.VarChar, exito.consecutivo);
+                            Conexion.creaParametro(cmd, "@descripcion", SqlDbType.VarChar,"" );
+                            Conexion.ejecutarNonquery(cmd);
+
+                        }
+
+                        foreach (var rechazo in archivo.rechazos)
+                        {
+                            //registrar rechazados
+                            cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsnRechazo", _Cn);
+                            Conexion.creaParametro(cmd, "@idvsn", SqlDbType.VarChar, idarchivo);
+                            Conexion.creaParametro(cmd, "@consecutivo", SqlDbType.VarChar, rechazo.consecutivo);
+                            Conexion.creaParametro(cmd, "@bandamagnetica", SqlDbType.VarChar,"");
+                            var idrechazo = Conexion.ejecutaScalar(cmd);
+
+                            foreach (var error in rechazo.errores)
+                            {
+                                //registrar errores
+                                cmd = Conexion.creaComando("SProcedure_Add_Pro_ArchivosBanregioVsnRechazoErrores", _Cn);
+                                Conexion.creaParametro(cmd, "@idvsnrechazo", SqlDbType.Int, idrechazo);
+                                Conexion.creaParametro(cmd, "@codigo", SqlDbType.VarChar, error.codigo);
+                                Conexion.creaParametro(cmd, "@descripcion", SqlDbType.VarChar, error.descripcion);
+                                Conexion.ejecutarNonquery(cmd);
+                            }
+                        }
+                    }
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+
+                ErrorTrack.Add(ex.ToString());
+            }
+           
+
+        }
+
 
     }
 }

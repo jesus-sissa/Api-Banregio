@@ -19,4 +19,19 @@ namespace Api_Bank
         public List< Deposito> depositos { get; set; }
 
     }
+
+    public class CuentaI
+    {
+        public string id { get; set; }
+        public string numeroCuenta { get; set; }
+        public string instituto { get; set; }
+        public string claveArchivo { get; set; }
+        public int numeroDepositos { get; set; }
+        public decimal importeTotalEfectivo { get; set; }
+        public decimal importeTotalChequesPropios { get; set; }
+        public decimal importeTotalChequesOtros { get; set; }
+        public string razonSocialCliente { get; set; }
+        public List<Deposito> depositos { get; set; }
+
+    }
 }

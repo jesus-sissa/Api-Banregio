@@ -45,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bank.cs" />
+    <Compile Include="ResponseBanregio\Archivos.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="ConceptosProceso.cs" />
     <Compile Include="Conexion.cs" />
@@ -56,10 +57,17 @@
     <Compile Include="BanregioApi.cs" />
     <Compile Include="Model\Root.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResponseBanregio\Errores.cs" />
+    <Compile Include="ResponseBanregio\Exitos.cs" />
+    <Compile Include="ResponseBanregio\Rechazos.cs" />
+    <Compile Include="ResponseBanregio\Response.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="json1.json" />
     <None Include="packages.config" />
+    <None Include="respuestaJson.json" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions />
 </Project>
